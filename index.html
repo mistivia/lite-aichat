@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        globalConfig = {};
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+</head>
+<body>
+    <div class="header">
+        <p id="model-name"></p>
+    </div>
+
+    <div class="chat-container" id="message-container">
+        <div class="system-prompt-container">
+            <textarea class="system-prompt-box" placeholder="System Prompt..." rows="2" id="system-prompt"></textarea>
+        </div>
+    </div>
+
+    <div class="input-container">
+        <textarea class="input-box" placeholder="输入你的消息..." rows="3" id="input-box"></textarea>
+        <button class="button send" id="send-button">发送</button>
+        <button class="button stop" id="stop-button">停止</button>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

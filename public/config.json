@@ -1,0 +1,5 @@
+{
+    "model": "chatgpt",
+    "url": "https://api-inference.huggingface.co/models/gpt-2",
+    "key": "uwu"
+}

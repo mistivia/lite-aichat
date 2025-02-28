@@ -99,6 +99,10 @@ async function fetchAiStream() {
         onStreamEnd();
     } catch (error) {
         console.error('Error:', error);
+        let p = document.createElement('p');
+        p.innerHTML = error;
+        p.style.color = 'red';
+        elem.appendChild(p);
         throw error;
     }
 }

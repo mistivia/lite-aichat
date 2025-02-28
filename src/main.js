@@ -7,7 +7,7 @@ let isGenerating = false;
 function fetchJSONSync(url) {
     try {
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, false); // 第三个参数设为false，表示同步请求
+        xhr.open('GET', url, false);  // sync request
         xhr.send();
 
         if (xhr.status !== 200) {
@@ -26,12 +26,12 @@ globalConfig = fetchJSONSync('./config.json');
 
 function setGenerating() {
     isGenerating = true;
-    document.getElementById('send-button').innerHTML = '生成中...';
+    document.getElementById('send-button').innerHTML = 'Generating...';
 }
 
 function unsetGenerating() {
     isGenerating = false;
-    document.getElementById('send-button').innerHTML = '发送';
+    document.getElementById('send-button').innerHTML = 'Send';
 }
 
 let stopGenerating = false;

@@ -22,7 +22,9 @@ function fetchJSONSync(url) {
     }
 }
 
-globalConfig = fetchJSONSync('./config.json');
+const timestamp = new Date().getTime();
+globalConfig = fetchJSONSync('./config.json' + '?t=' + timestamp);
+
 for (let key in globalConfig) {
     if (globalConfig[key]["type"] === undefined) {
         globalConfig[key].type = 'openai';

@@ -2,9 +2,6 @@
 
 Liteweight Web Client for OpenAI-compatible API with LaTeX support.
 
-![image](https://github.com/user-attachments/assets/ddade992-ce61-4ed4-bf6e-b89bb0a8ef0f)
-
-
 ## How to Use
 
 Download the release tarball, decompress it.
@@ -18,3 +15,7 @@ Edit config.json, fill in the key.
     nano config.json
 
 Then serve it with any web server.
+
+## Screenshots 
+
+![image](https://github.com/user-attachments/assets/fb84b078-24f8-4e14-9bba-c29ecc26b87c)

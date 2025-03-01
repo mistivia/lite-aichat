@@ -60,7 +60,7 @@ body {
     background-color: #eee;
     color: #333;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    max-width: 80%;
+    max-width: 50%;
     margin-left: auto;
 }
 
@@ -96,6 +96,14 @@ body {
     font-weight: bold;
 }
 
+#model-selector {
+    background-color: white;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+}
 
 body figcaption {
   color: #666

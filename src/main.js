@@ -23,6 +23,22 @@ function fetchJSONSync(url) {
 }
 
 globalConfig = fetchJSONSync('./config.json');
+let modelSelector = document.getElementById('model-selector');
+for (let key in globalConfig) {
+    let option = document.createElement('option');
+    option.value = key;
+    option.text = key;
+    modelSelector.add(option);
+}
+if (localStorage.getItem('lite-aichat-model') !== null) {
+    modelSelector.value = localStorage.getItem('lite-aichat-model');
+}
+globalCurrentModel = globalConfig[modelSelector.value];
+
+modelSelector.addEventListener('change', function() {
+    globalCurrentModel = globalConfig[modelSelector.value];
+    localStorage.setItem('lite-aichat-model', modelSelector.value);
+});
 
 function setGenerating() {
     isGenerating = true;
@@ -64,7 +80,6 @@ function sendMessage() {
         });
 }
 
-document.getElementById('model-name').textContent = globalConfig.model;
 
 document.getElementById('input-box').addEventListener('keydown', function(event) {
     if (event.ctrlKey && event.key === 'Enter') {

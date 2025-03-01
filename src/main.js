@@ -23,8 +23,21 @@ function fetchJSONSync(url) {
 }
 
 globalConfig = fetchJSONSync('./config.json');
-let modelSelector = document.getElementById('model-selector');
 for (let key in globalConfig) {
+    if (globalConfig[key]["type"] === undefined) {
+        globalConfig[key].type = 'openai';
+    }
+    if (globalConfig[key]["ctxLen"] === undefined) {
+        globalConfig[key]["ctxLen"] = 100000;
+    }
+    if (globalConfig[key]["maxTokens"] === undefined) {
+        globalConfig[key]["maxTokens"] = 10000;
+    }
+}
+
+let modelSelector = document.getElementById('model-selector');
+let modelKeys = Object.keys(globalConfig).sort((a, b) => a.localeCompare(b));
+for (let key of modelKeys) {
     let option = document.createElement('option');
     option.value = key;
     option.text = key;

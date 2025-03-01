@@ -1,0 +1,14 @@
+{
+    "claude-haiku": {
+        "model": "claude-3-5-haiku-latest",
+        "url": "https://api.anthropic.com/v1/messages",
+        "key": "xxxxxxxxxxxxxxxxxxxx",
+        "maxTokens": 4096,
+        "type": "claude"
+    },
+    "gpt-4o": {
+        "model": "chatgpt-4o-latest",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "key": "xxxxxxxxxxxxxxxxxxxxx"
+    }
+}

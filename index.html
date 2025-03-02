@@ -7,30 +7,24 @@
         };
     </script>
     <script id="MathJax-script" src="https://raye.mistivia.com/mathjax/tex-mml-chtml.js"></script>
-    <script>
-        globalConfig = {};
-        globalCurrentModel = {};
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lite AI Chat</title>
 </head>
-<body>
-    <div class="header">
-    <select id="model-selector">
-    </select>
+<body class="font-sans h-screen flex flex-col max-w-5xl m-auto">
+    <div class="p-8 bg-gray-100">
+        <select class="bg-white p-4 rounded-lg text-lg" id="model-selector"></select>
+    </div>
+    
+    <div class="p-6 flex-1" id="message-container">
     </div>
 
-    <div class="chat-container" id="message-container">
-        <div class="system-prompt-container" style="display:none;">
-            <textarea class="system-prompt-box" placeholder="System Prompt..." rows="2" id="system-prompt"></textarea>
-        </div>
-    </div>
-
-    <div class="input-container">
-        <textarea class="input-box" placeholder="Input Message..." rows="3" id="input-box"></textarea>
-        <button class="button send" id="send-button">Send</button>
-        <button class="button stop" id="stop-button">Stop</button>
+    <div class="flex my-4 p-4">
+        <textarea class="flex-1 m-2 p-4 border-gray-200 outline-none resize-none border rounded-lg"
+            placeholder="Input Message..." rows="3" id="input-box"
+        ></textarea>
+        <button class="rounded-lg py-4 px-8 bg-gray-200 hover:bg-gray-300 m-2" id="send-button">Send</button>
+        <button class="rounded-lg py-4 px-8 bg-gray-200 hover:bg-gray-300 m-2" id="stop-button">Stop</button>
     </div>
     <script type="module" src="/src/main.js"></script>
 </body>

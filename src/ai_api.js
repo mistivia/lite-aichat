@@ -1,18 +1,7 @@
 import { createMessage } from './message';
 import { marked } from 'marked';
-import { unsetGenerating, getStopGenerating, resetStopGenerating } from './main';
-
-let context = [];
-let currentMessage = '';
-
-function appendUserMessageToCtx(msg) {
-    context.push({
-        role: 'user',
-        content: msg,
-    });
-}
-
-let renderCnt = 0;
+import { generationController, modelManager } from './main';
+import { conversationManager } from './conversation';
 
 function extractDelta(type, data) {
     if (type === 'openai') {
@@ -32,18 +21,29 @@ function isStop(type, rawData) {
     }
 }
 
-function onStreamEvent(type, elem, data, forceRender=false) {
+let renderCnt = 0;
+
+function shouldRender() {
+    renderCnt++;
+    if (renderCnt % 100 === 0) return true;
+    return false;
+}
+
+function onStreamEvent(model, conversation, domElem, data, forceRender=false) {
+    let deltaContent = extractDelta(model.type, data);
+    if (deltaContent === undefined) deltaContent = '';
+    conversation.currentMessage = conversation.currentMessage + deltaContent;
+    if (!shouldRender() && !forceRender) return;
+    renderMessage(domElem, conversation.currentMessage);
+}
+
+function renderMessage(domElem, message) {
     let container = document.getElementById('message-container');
     let shouldScroll = false;
     if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100) {
         shouldScroll = true;
     }
-    let deltaContent = extractDelta(type, data);
-    if (deltaContent === undefined) deltaContent = '';
-    currentMessage = currentMessage + deltaContent;
-    renderCnt++;
-    if (renderCnt % 100 !== 0 && !forceRender) return;
-    let renderContent = currentMessage.replace('<think>', '<div class="think">\n\n');
+    let renderContent = message.replace('<think>', '<div class="think">\n\n');
     renderContent = renderContent.replace('</think>', '\n\n</div>').trim();
     renderContent = renderContent 
         .replace(/(\\\[)([\s\S]*?)(\\\])/g, (match, p1, p2, p3) => {
@@ -53,61 +53,44 @@ function onStreamEvent(type, elem, data, forceRender=false) {
             return `\\\\\\\(${p2.trim()}\\\\\\\)`;
         })
     const html = marked.parse(renderContent);
-    elem.innerHTML = html;
+    domElem.innerHTML = html;
     if (shouldScroll) {
         container.scrollTop = container.scrollHeight;
     }
 }
 
-function onStreamEnd(type, elem) {
-    onStreamEvent(type, elem, {}, true)
-    context.push({
-        role: 'assistant',
-        content: currentMessage.replace(/<think>[\s\S]*?<\/think>/g, ''),
-    });
-    currentMessage = '';
-    unsetGenerating();
+function onStreamEnd(model, conversation, domElem) {
+    onStreamEvent(model, conversation, domElem, {}, true)
+    conversation.addMessage(
+        'assistant',
+        conversation.currentMessage.replace(/<think>[\s\S]*?<\/think>/g, ''));
+    conversation.currentMessage = '';
+    generationController.unsetGenerating();
     MathJax.typesetPromise();
 }
 
-function cleanContext(len) {
-    let getBytes = (str) => {
-        return new Blob([str]).size;
-    };
-    let sum = 0;
-    let splitIndex = context.length;
-    for (let i = context.length - 1; i >= 0; i--) {
-        const bytes = getBytes(context[i].content);
-        if (sum + bytes > len) {
-            splitIndex = i;
-            break;
-        }
-        sum += bytes;
-        splitIndex = 0;
-    }
-    context = context.slice(splitIndex);
-}
-
 async function fetchAiStream() {
+    let currentModel = modelManager.currentModel;
+    let conversation = conversationManager.currentConversation;
+
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${globalCurrentModel.key}`
+        'Authorization': `Bearer ${currentModel.key}`
     };
-    cleanContext(globalCurrentModel.ctxLen);
+    conversation.cleanContext(currentModel.ctxLen);
     const requestBody = {
-        model: globalCurrentModel.model,
-        messages: context,
+        model: currentModel.model,
+        messages: conversation.context,
         stream: true,
-        max_tokens: globalCurrentModel.maxTokens,
+        max_tokens: currentModel.maxTokens,
     };
-    let elem = createMessage('', false);
-    let type = globalCurrentModel.type;
+    let domElem = createMessage('', false);
     let container = document.getElementById('message-container');
-    container.appendChild(elem);
+    container.appendChild(domElem);
     container.scrollTop = container.scrollHeight;
-    elem.innerHTML = '<p>Generating...</p>';
+    domElem.innerHTML = '<p>Generating...</p>';
     try {
-        const response = await fetch(globalCurrentModel.url, {
+        const response = await fetch(currentModel.url, {
             method: 'POST',
             headers,
             body: JSON.stringify(requestBody),
@@ -128,36 +111,40 @@ async function fetchAiStream() {
             for (const line of lines) {
                 if (!generationStarted) {
                     generationStarted = true;
-                    elem.innerHTML = '';
+                    domElem.innerHTML = '';
                 }
-                if (getStopGenerating()) {
-                    resetStopGenerating();
-                    onStreamEnd(type, elem);
+                if (generationController.getStopGenerating()) {
+                    generationController.resetStopGenerating();
+                    onStreamEnd(currentModel, conversation, domElem);
                     return;
                 }
                 if (line === '') continue;
-                if (isStop(type, line.trim())) break;
+                if (isStop(currentModel.type, line.trim())) break;
                 if (!line.startsWith('data: ')) {
                     continue;
                 }
                 try {
                     const data = JSON.parse(line.slice(6));
-                    onStreamEvent(type, elem, data);
+                    onStreamEvent(currentModel, conversation, domElem, data);
                 } catch (e) {
                     console.error('Error parsing stream data:', e);
                 }
             }
         }
-        onStreamEnd(type, elem);
+        onStreamEnd(currentModel, conversation, domElem);
     } catch (error) {
         console.error('Error:', error);
-        onStreamEnd(type, elem);
-        let p = document.createElement('p');
-        p.innerHTML = error;
-        p.style.color = 'red';
-        elem.appendChild(p);
+        onStreamEnd(currentModel, conversation, domElem);
+        domElem.appendChild(createErrorMsg(error));
         throw error;
     }
 }
 
-export { appendUserMessageToCtx, fetchAiStream };
+function createErrorMsg(error) {
+    let p = document.createElement('p');
+    p.innerHTML = error;
+    p.style.color = 'red';
+    return p;
+}
+
+export { fetchAiStream };

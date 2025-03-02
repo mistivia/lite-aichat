@@ -1,79 +1,89 @@
-import './main_style.css';
+import './style.css';
 import { createMessage } from './message.js';
-import { fetchAiStream, appendUserMessageToCtx } from './ai_api.js';
+import { fetchAiStream } from './ai_api.js';
+import { conversationManager } from './conversation';
+import utils from './utils';
+
+export { generationController, modelManager };
+
 
 let isGenerating = false;
-
-function fetchJSONSync(url) {
-    try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, false);  // sync request
-        xhr.send();
-
-        if (xhr.status !== 200) {
-            throw new Error(`HTTP Error: ${xhr.status}`);
-        }
-
-        const data = JSON.parse(xhr.responseText);
-        return data;
-    } catch (error) {
-        console.error('Error fetching JSON:', error);
-        throw error;
-    }
-}
-
-const timestamp = new Date().getTime();
-globalConfig = fetchJSONSync('./config.json' + '?t=' + timestamp);
-
-for (let key in globalConfig) {
-    if (globalConfig[key]["type"] === undefined) {
-        globalConfig[key].type = 'openai';
-    }
-    if (globalConfig[key]["ctxLen"] === undefined) {
-        globalConfig[key]["ctxLen"] = 100000;
-    }
-    if (globalConfig[key]["maxTokens"] === undefined) {
-        globalConfig[key]["maxTokens"] = 10000;
-    }
-}
-
-let modelSelector = document.getElementById('model-selector');
-let modelKeys = Object.keys(globalConfig).sort((a, b) => a.localeCompare(b));
-for (let key of modelKeys) {
-    let option = document.createElement('option');
-    option.value = key;
-    option.text = key;
-    modelSelector.add(option);
-}
-if (localStorage.getItem('lite-aichat-model') !== null) {
-    modelSelector.value = localStorage.getItem('lite-aichat-model');
-}
-globalCurrentModel = globalConfig[modelSelector.value];
-
-modelSelector.addEventListener('change', function() {
-    globalCurrentModel = globalConfig[modelSelector.value];
-    localStorage.setItem('lite-aichat-model', modelSelector.value);
-});
-
-function setGenerating() {
-    isGenerating = true;
-    document.getElementById('send-button').innerHTML = 'Generating...';
-}
-
-function unsetGenerating() {
-    isGenerating = false;
-    document.getElementById('send-button').innerHTML = 'Send';
-}
-
 let stopGenerating = false;
 
-function resetStopGenerating() {
-    stopGenerating = false;
+let generationController = {
+    setGenerating: () => {
+        isGenerating = true;
+        document.getElementById('send-button').innerHTML = 'Generating...';
+    },
+    unsetGenerating: () => {
+        isGenerating = false;
+        document.getElementById('send-button').innerHTML = 'Send';
+    },
+    resetStopGenerating: () => {
+        stopGenerating = false;
+    },
+    getStopGenerating: () => {
+        return stopGenerating;
+    }
+};
+
+function sanitizeGlobalConfig(config) {
+    for (let key in config) {
+        if (config[key]["type"] === undefined) {
+            config[key].type = 'openai';
+        }
+        if (config[key]["ctxLen"] === undefined) {
+            config[key]["ctxLen"] = 100000;
+        }
+        if (config[key]["maxTokens"] === undefined) {
+            config[key]["maxTokens"] = 10000;
+        }
+    }
+    return config;
 }
 
-function getStopGenerating() {
-    return stopGenerating;
+function buildModelSelector(config) {
+    let modelSelector = document.getElementById('model-selector');
+    let modelKeys = Object.keys(config).sort((a, b) => a.localeCompare(b));
+    for (let key of modelKeys) {
+        let option = document.createElement('option');
+        option.value = key;
+        option.text = key;
+        modelSelector.add(option);
+    }
+    if (localStorage.getItem('lite-aichat-model') !== null) {
+        modelSelector.value = localStorage.getItem('lite-aichat-model');
+    }
 }
+
+let ModelManager = () => {
+    let self = {
+        config: {},
+        currentModel: '',
+        init: () => {
+            let modelSelector = document.getElementById('model-selector');
+            self.config = utils.noCacheSyncJsonFetch('./config.json');
+            self.config = sanitizeGlobalConfig(self.config);
+            buildModelSelector(self.config);
+            self.currentModel = self.config[modelSelector.value];
+        },
+        setModel: (modelKey) => {
+            let modelSelector = document.getElementById('model-selector');
+            self.currentModel = self.config[modelKey];
+            localStorage.setItem('lite-aichat-model', modelSelector.value);
+        },
+    };
+    self.init();
+    return self;
+};
+
+let modelManager = ModelManager();
+
+document.getElementById('model-selector').addEventListener('change', function() {
+    let modelSelector = document.getElementById('model-selector');
+    modelManager.setModel(modelSelector.value);;
+});
+
 
 function sendMessage() {
     if (isGenerating) return;
@@ -83,10 +93,10 @@ function sendMessage() {
         return;
     }
     let msgElem = createMessage(message, true);
-    appendUserMessageToCtx(message);
+    conversationManager.currentConversation.addMessage('user', message);
     let container = document.getElementById('message-container');
     container.appendChild(msgElem);
-    setGenerating();
+    generationController.setGenerating();
     container.scrollTop = container.scrollHeight;
     input.value = '';
     fetchAiStream()
@@ -113,5 +123,4 @@ document.getElementById('stop-button').addEventListener('click', () => {
     }
 });
 
-export { unsetGenerating, getStopGenerating, resetStopGenerating};
 

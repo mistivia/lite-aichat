@@ -11,24 +11,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lite AI Chat</title>
 </head>
-<body class="font-sans h-screen flex flex-col max-w-5xl m-auto">
-    <!-- header -->
-    <div class="p-8 bg-gray-100">
-        <select class="modes bg-white p-4 rounded-lg text-lg" id="model-selector"></select>
-    </div>
-    
-    <!-- messages -->
-    <div class="p-6 my-2 flex-1 overflow-y-auto" id="message-container">
-    </div>
-    
-    <!-- input area -->
-    <div class="flex p-4 my-2">
-        <textarea class="flex-1 m-2 p-4 border-gray-200 outline-none resize-none border rounded-lg"
-            placeholder="Input Message..." rows="3" id="input-box"
-        ></textarea>
-        <div class="flex flex-col">
-            <button class="rounded-lg py-4 px-8 bg-gray-200 hover:bg-gray-300 m-2" id="send-button">Send</button>
-            <button class="rounded-lg py-4 px-8 bg-gray-200 hover:bg-gray-300 m-2" id="stop-button">Stop</button>
+<body>
+    <div class="font-sans h-screen flex max-w-6xl flex-col m-auto">
+        <!-- header -->
+        <div class="p-8 bg-gray-100">
+            <select class="modes bg-white p-4 rounded-lg text-lg" id="model-selector"></select>
+        </div>
+        
+        <!-- messages -->
+        <div class="p-6 my-2 flex-1 overflow-y-auto" id="message-container">
+        </div>
+        
+        <!-- input area -->
+        <div class="flex p-4 my-2">
+            <textarea class="flex-1 m-2 p-4 border-gray-200 outline-none resize-none border rounded-lg"
+                placeholder="Input Message..." rows="3" id="input-box"
+            ></textarea>
+            <div class="flex flex-col">
+                <button class="rounded-lg py-4 px-8 bg-gray-200 hover:bg-gray-300 m-2" id="send-button">Send</button>
+                <button class="rounded-lg py-4 px-8 bg-gray-200 hover:bg-gray-300 m-2" id="stop-button">Stop</button>
+            </div>
         </div>
     </div>
     <script type="module" src="/src/main.js"></script>

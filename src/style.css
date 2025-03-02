@@ -35,11 +35,11 @@
 }
 
 .msg ul {
-    @apply list-disc;
+    @apply ml-4 list-disc;
 }
 
 .msg ol {
-    @apply list-decimal;
+    @apply ml-4 list-decimal;
 }
 
 .msg code:not(pre>code) {
